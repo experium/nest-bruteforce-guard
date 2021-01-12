@@ -1,0 +1,31 @@
+{
+  "name": "bruteforce-guard",
+  "version": "0.1.0",
+  "description": "Protect authorization from bruteforce",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/derzkiy/bruteforce-guard.git"
+  },
+  "author": "Andrey Novikov <kinotimebox@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "nestjs",
+    "guard",
+    "bruteforce",
+    "node",
+    "password"
+  ],
+  "dependencies": {
+    "@nestjs/common": "^6.7.0",
+    "@nestjs/passport": "^6.2.0",
+    "@nestjs/typeorm": "^6.2.0",
+    "mongodb": "3.1.10",
+    "typeorm": "^0.2.22"
+  },
+  "bugs": {
+    "url": "https://git@github.com/derzkiy/bruteforce-guard/issues"
+  },
+  "homepage": "https://git@github.com/derzkiy/bruteforce-guard#readme"
+}
