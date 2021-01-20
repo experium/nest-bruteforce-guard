@@ -10,12 +10,19 @@ npm install nest-bruteforce-guard
 ```
 import { BruteforceGuardModule } from 'nest-bruteforce-guard';
 
-BruteforceGuardModule.setUp({
-    attemptMinutesByLogin: 120,
-    attemptMinutesByIp: 30,
-    attemptCountByLogin: 5,
-    attemptCountByIp: 10,
-}),
+@Module({
+    imports: [
+        //...
+        BruteforceGuardModule.setUp({
+            attemptMinutesByLogin: 120,
+            attemptMinutesByIp: 30,
+            attemptCountByLogin: 5,
+            attemptCountByIp: 10,
+        })
+    ],
+})
+export class ApplicationModule {
+}
 ```
 
 ## Usage
@@ -23,11 +30,15 @@ BruteforceGuardModule.setUp({
 ```
 
 ### Decorator on controller login action
+import { ExecutionContext } from '@nestjs/common';
+
 @UseGuards(BruteforceGuard)
 @LoginEntityOptions({
     loginFieldName: 'username',
     passwordFieldName: 'password',
-    callback: () => {},
+    callback: (context: ExecutionContext) => {
+        throw new ForbiddenException('Too many login attempts');
+    },
 })
 @Post('login')
 async login(@Body() body: any, @Req() request: Request): Promise<boolean> {

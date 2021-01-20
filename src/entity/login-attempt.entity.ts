@@ -5,22 +5,22 @@ import { ObjectID } from 'mongodb';
 @Index(['login', 'date'])
 @Index(['ip', 'date'])
 export class LoginAttempt {
-    @ObjectIdColumn()
-    id: ObjectID;
+  @ObjectIdColumn()
+  id: ObjectID;
 
-    @Column()
-    login: string;
+  @Column()
+  login: string;
 
-    @Column()
-    ip: string;
+  @Column()
+  ip: string;
 
-    @Column()
-    @Index({ expireAfterSeconds: 84600 })
-    date: Date;
+  @Column()
+  @Index({ expireAfterSeconds: 84600 })
+  date: Date;
 
-    constructor(login: string, ip: string) {
-        this.login = login;
-        this.ip = ip;
-        this.date = new Date();
-    }
+  constructor(login: string, ip: string) {
+    this.login = login;
+    this.ip = ip;
+    this.date = new Date();
+  }
 }
