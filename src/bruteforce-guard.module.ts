@@ -1,19 +1,30 @@
-import { Global, Module } from "@nestjs/common";
+import { DynamicModule, Global, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ConfigModule } from '@nestjs/config';
-import { EventEmitterModule } from "@nestjs/event-emitter";
 import { LoginAttempt } from './entity/login-attempt.entity';
-import configuration from '../config/default';
+import { BruteforceGuardConfiguration } from './config/bruteforce-quard.configuration';
+import { BruteforceGuardService } from './bruteforce-guard.service';
+import { BRUTEFORCE_GUARD_OPTIONS_PROVIDER } from './constants';
+import { BruteforceGuard } from './bruteforce-guard';
 
 @Global()
 @Module({
     imports: [
         TypeOrmModule.forFeature([LoginAttempt]),
-        ConfigModule.forRoot({
-            load: [configuration],
-        }),
-        EventEmitterModule.forRoot(),
     ],
 })
 export class BruteforceGuardModule {
+    static setUp(config: BruteforceGuardConfiguration): DynamicModule {
+        return {
+            module: BruteforceGuardModule,
+            providers: [
+                {
+                    provide: BRUTEFORCE_GUARD_OPTIONS_PROVIDER,
+                    useValue: config,
+                },
+                BruteforceGuardService,
+                BruteforceGuard,
+            ],
+            exports: [BruteforceGuardService, BruteforceGuard],
+        };
+    }
 }

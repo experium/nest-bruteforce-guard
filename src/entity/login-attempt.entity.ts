@@ -1,28 +1,25 @@
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
 @Entity()
-@Index(['login', 'date'], { expireAfterSeconds: 86400 })
-@Index(['hash', 'date'], { expireAfterSeconds: 86400 })
+@Index(['login', 'date'])
+@Index(['ip', 'date'])
 export class LoginAttempt {
-    @Column()
+    @ObjectIdColumn()
     id: ObjectID;
 
     @Column()
     login: string;
 
     @Column()
-    hash: string;
-
-    @Column()
-    date: Date;
-
-    @Column()
     ip: string;
 
-    constructor(login: string, hash: string, ip: string) {
+    @Column()
+    @Index({ expireAfterSeconds: 84600 })
+    date: Date;
+
+    constructor(login: string, ip: string) {
         this.login = login;
-        this.hash = hash;
         this.ip = ip;
         this.date = new Date();
     }
