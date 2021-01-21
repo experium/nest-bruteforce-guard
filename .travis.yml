@@ -1,6 +1,6 @@
 dist: trusty
 language: node_js
-version: 1.0
+version: 1.0.0
 node_js: stable
 before_script: npm install
 script:
@@ -15,7 +15,7 @@ jobs:
       - npm run build
       - npm version 1.0.$TRAVIS_BUILD_NUMBER
       deploy:
-        skip_cleanup: true
+        cleanup: false
         provider: npm
         email: "webdev@experium.ru"
         api_key: "$NPM_API_KEY"
