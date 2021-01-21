@@ -22,5 +22,5 @@
     ]
   },
   "include": ["*.ts", "**/*.ts"],
-  "exclude": ["node_modules", "./**/*.spec.ts", "examples"]
+  "exclude": ["node_modules", "./tests", "jest.config.ts"]
 }

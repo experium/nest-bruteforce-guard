@@ -1,9 +1,14 @@
 {
-  "name": "experium-bruteforce-guard",
+  "name": "@experium/nest-bruteforce-guard",
   "version": "0.1.0",
   "description": "Authorization protection from bruteforce",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "homepage": "https://github.com/experium/nest-bruteforce-guard",
+  "repository": "https://github.com/experium/nest-bruteforce-guard",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/experium/nest-bruteforce-guard.git"
@@ -51,6 +56,7 @@
   },
   "scripts": {
     "test": "jest --config ./tests/jest-e2e.json --runInBand",
+    "build": "rm -rf dist && tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "prepare": "npm run build",
