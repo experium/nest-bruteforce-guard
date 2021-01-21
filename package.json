@@ -1,17 +1,16 @@
 {
   "name": "@experium/nest-bruteforce-guard",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "Authorization protection from bruteforce",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "homepage": "https://github.com/experium/nest-bruteforce-guard",
-  "repository": "https://github.com/experium/nest-bruteforce-guard",
-  "publishConfig": {
-    "access": "public"
-  },
+  "homepage": "https://git@github.com/derzkiy/bruteforce-guard#readme",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/experium/nest-bruteforce-guard.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "author": "Andrey Novikov <kinotimebox@gmail.com>",
   "license": "MIT",
@@ -37,7 +36,6 @@
   "bugs": {
     "url": "https://git@github.com/derzkiy/bruteforce-guard/issues"
   },
-  "homepage": "https://git@github.com/derzkiy/bruteforce-guard#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
     "@nestjs/platform-express": "^7.6.5",
