@@ -2,7 +2,7 @@
 
 ```sh
 # Locally in your project.
-npm install nest-bruteforce-guard
+npm install @experium/nest-bruteforce-guard
 ```
 
 ## Configuration
