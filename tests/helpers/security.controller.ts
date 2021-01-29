@@ -2,74 +2,39 @@ import { Request } from 'express';
 import {
     Body,
     Controller,
-    ForbiddenException,
     HttpCode, LiteralObject,
     Post,
     Req,
-    UnauthorizedException,
-    UseGuards
+    UseInterceptors,
 } from "@nestjs/common";
-import { BruteforceGuard } from '../../src/bruteforce-guard';
-import { LoginEntityOptions } from '../../src/login-entity-options.decorator';
-import { BruteforceGuardService } from '../../dist/bruteforce-guard.service';
+import { BruteforceGuardInterceptor } from '../../src/bruteforce-guard.interceptor';
+import { UserNotFoundException } from '../../src/exception/user-not-found.exception';
+import { BadPasswordException } from '../../src/exception/bad-password.exception';
+import { UserDisabledException } from '../../src/exception/user-disabled.exception';
 
-const users = ['admin', 'manager', 'å'];
-
-export const testCallback = () => {
-    throw new Error('Bruteforce guard error');
-};
-
-export const httpExceptionCallback = () => {
-    throw new ForbiddenException('Too many login attempts');
-};
+const users = ['admin', 'disabled'];
 
 @Controller()
 export class SecurityController {
-
-    constructor(private readonly bruteforceGuardService: BruteforceGuardService) {}
-
-    @UseGuards(BruteforceGuard)
-    @LoginEntityOptions({
-        loginFieldName: 'login',
-        passwordFieldName: 'password',
-        callback: httpExceptionCallback,
-    })
+    @UseInterceptors(BruteforceGuardInterceptor)
     @HttpCode(200)
     @Post('login')
     async login(@Body() body: any, @Req() request: Request): Promise<LiteralObject> {
         const login = body.login;
         const password = body.password;
 
-        if (users.indexOf(login) > -1 && password === login) {
-            await this.bruteforceGuardService.clearLoginAttempts(login, request.ip);
+        if (users.indexOf(login) < 0) {
+            throw new UserNotFoundException();
+        }
 
+        if (login === 'disabled') {
+            throw new UserDisabledException();
+        }
+
+        if (users.indexOf(login) > -1 && password === login) {
             return { success: true, username: login };
         }
 
-        await this.bruteforceGuardService.saveLoginAttempt(login, request.ip);
-
-        throw new UnauthorizedException();
-    }
-
-    @UseGuards(BruteforceGuard)
-    @LoginEntityOptions({
-        loginFieldName: 'email',
-        passwordFieldName: 'pwd',
-    })
-    @HttpCode(200)
-    @Post('custom-login')
-    async customLogin(@Body() body: any, @Req() request: Request): Promise<boolean> {
-        const login = body.email;
-        const password = body.pwd;
-
-        if (users.indexOf(login) > -1 || password === login) {
-            await this.bruteforceGuardService.clearLoginAttempts(login, request.ip);
-
-            return true;
-        }
-
-        await this.bruteforceGuardService.saveLoginAttempt(login, request.ip);
-
-        throw new UnauthorizedException();
+        throw new BadPasswordException();
     }
 }

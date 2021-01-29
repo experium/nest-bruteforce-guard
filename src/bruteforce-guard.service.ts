@@ -1,54 +1,131 @@
-import { Inject } from '@nestjs/common';
 import { addMinutes } from 'date-fns';
-import { MongoRepository } from 'typeorm';
+import { Cursor, MongoRepository, ObjectLiteral } from 'typeorm';
+import * as escapeStringRegexp from 'escape-string-regexp';
+import { ExecutionContext, Inject } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { LoginAttempt } from './entity/login-attempt.entity';
 import { BRUTEFORCE_GUARD_OPTIONS_PROVIDER } from './constants';
 import { BruteforceGuardConfiguration } from './config/bruteforce-quard.configuration';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BruteforceDetectionException } from './exception/bruteforce-detection.exception';
+import { ExceptionCatcherRegistry } from './catcher/exception-catcher.registry';
 
 export class BruteforceGuardService {
-  constructor(
-    @InjectRepository(LoginAttempt)
-    private readonly repository: MongoRepository<LoginAttempt>,
-    @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
-    readonly config: BruteforceGuardConfiguration,
-  ) {}
+    constructor(
+        @InjectRepository(LoginAttempt)
+        private readonly repository: MongoRepository<LoginAttempt>,
+        @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
+        readonly config: BruteforceGuardConfiguration,
+        private readonly registry: ExceptionCatcherRegistry,
+    ) {}
 
-  async canLogin(login: string, ip: string): Promise<boolean> {
-    const loginAttemptsCount = await this.getAttemptsCountByLogin(login);
-    const ipAttemptsCount = await this.getAttemptsCountByIP(ip);
+    async canLogin(context: ExecutionContext): Promise<boolean> {
+        const login = this.getLoginByContext(context);
+        const ip = context.switchToHttp().getRequest().ip;
+        const loginAttemptsCount = await this.getAttemptsCountByLogin(login);
+        const ipAttemptsCount = await this.getAttemptsCountByIP(ip);
 
-    return loginAttemptsCount < this.config.attemptCountByLogin && ipAttemptsCount < this.config.attemptCountByIp;
-  }
+        if (login && loginAttemptsCount < this.config.attemptCountByLogin && ipAttemptsCount < this.config.attemptCountByIp) {
+            return true;
+        }
 
-  async saveLoginAttempt(login: string, ip: string): Promise<void> {
-    await this.repository.save(new LoginAttempt(login, ip));
-  }
+        await this.repository.save(new LoginAttempt(login, ip, true, true));
 
-  async clearLoginAttempts(login?: string, ip?: string): Promise<void> {
-    await this.repository.deleteMany({ login });
-    await this.repository.deleteMany({ ip });
-  }
+        throw new BruteforceDetectionException();
+    }
 
-  async save(entity: LoginAttempt) {
-    return await this.repository.save(entity);
-  }
+    async saveErrorAttempt(context: ExecutionContext, exception: any): Promise<void> {
+        const login = this.getLoginByContext(context);
+        const ip = context.switchToHttp().getRequest().ip;
 
-  private async getAttemptsCountByLogin(login: string): Promise<number> {
-    return await this.repository.count({
-      login,
-      date: {
-        $gt: addMinutes(new Date(), -this.config.attemptMinutesByLogin),
-      },
-    });
-  }
+        let loginAttempt = null;
+        for (const catcher of this.registry.getAll()) {
+            loginAttempt = catcher.handle(exception, context);
+            if (!!loginAttempt) {
+                break;
+            }
+        }
 
-  private async getAttemptsCountByIP(ip: string): Promise<number> {
-    return await this.repository.count({
-      ip,
-      date: {
-        $gt: addMinutes(new Date(), -this.config.attemptMinutesByIp),
-      },
-    });
-  }
+        if (!loginAttempt) {
+            loginAttempt = new LoginAttempt(login, ip, false);
+        }
+
+        await this.repository.save(loginAttempt);
+    }
+
+    async findByFilter(filter: ObjectLiteral): Promise<Cursor<LoginAttempt>> {
+        return this.repository.createEntityCursor(await this.getDefaultQuery(filter));
+    }
+
+    async getDefaultQuery(filter: ObjectLiteral):  Promise<Partial<LoginAttempt>> {
+        const query: ObjectLiteral = {};
+
+        if ('login' in filter && filter.login) {
+            query.login = {
+                $regex: new RegExp(escapeStringRegexp(filter.login)),
+                $options: 'i',
+            };
+        }
+
+        if ('ip' in filter && filter.ip) {
+            query.ip = {
+                $regex: new RegExp(escapeStringRegexp(filter.ip)),
+                $options: 'i',
+            };
+        }
+
+        if ('attemptBlocked' in filter && typeof filter.attemptBlocked === 'boolean') {
+            query.attemptBlocked = filter.attemptBlocked;
+        }
+
+        if ('loginFailure' in filter && typeof filter.loginFailure === 'boolean') {
+            query.loginFailure = filter.loginFailure;
+        }
+
+        if ('userDisabled' in filter && typeof filter.userDisabled === 'boolean') {
+            query.userDisabled = filter.userDisabled;
+        }
+
+        if ('badPassword' in filter && typeof filter.badPassword === 'boolean') {
+            query.badPassword = filter.badPassword;
+        }
+
+        return query;
+    }
+
+    async saveSuccessAttempt(context: ExecutionContext): Promise<void> {
+        const login = this.getLoginByContext(context);
+        const ip = context.switchToHttp().getRequest().ip;
+
+        await this.repository.save(new LoginAttempt(login, ip));
+    }
+
+    async save(entity: LoginAttempt) {
+        return await this.repository.save(entity);
+    }
+
+    private async getAttemptsCountByLogin(login: string): Promise<number> {
+        return await this.repository.count({
+            login,
+            date: {
+                $gt: addMinutes(new Date(), -this.config.attemptMinutesByLogin),
+            },
+            loginFailure: true,
+        });
+    }
+
+    private async getAttemptsCountByIP(ip: string): Promise<number> {
+        return await this.repository.count({
+            ip,
+            date: {
+                $gt: addMinutes(new Date(), -this.config.attemptMinutesByIp),
+            },
+            loginFailure: true,
+        });
+    }
+
+    private getLoginByContext(context: ExecutionContext): string {
+        const loginField = this.config.loginField;
+
+        return context.switchToHttp().getRequest().body[loginField];
+    }
 }

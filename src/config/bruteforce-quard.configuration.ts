@@ -3,4 +3,5 @@ export interface BruteforceGuardConfiguration {
   attemptMinutesByIp: number;
   attemptCountByLogin: number;
   attemptCountByIp: number;
+  loginField: string;
 }

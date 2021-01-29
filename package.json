@@ -28,6 +28,7 @@
     "@nestjs/passport": "^6.2.0",
     "@nestjs/typeorm": "^6.2.0",
     "date-fns": "^2.16.1",
+    "escape-string-regexp": "^4.0.0",
     "mongodb": "^3.6.3",
     "rxjs": "^6.6.3",
     "typeorm": "^0.2.22"

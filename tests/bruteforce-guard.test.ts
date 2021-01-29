@@ -2,16 +2,18 @@ import * as chai from 'chai';
 import { Connection } from 'typeorm';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { SecurityController, testCallback } from './helpers/security.controller';
+import { SecurityController } from './helpers/security.controller';
 import { BruteforceGuardModule } from '../src/bruteforce-guard.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { LoginRequestHelper } from './helpers/login-request.helper';
+import { BruteforceGuardService } from '../src/bruteforce-guard.service';
 
 const expect = chai.expect;
 
 let app: INestApplication;
 let loginHelper;
+let bruteforceGuardService;
 
 describe('test bruteforce guard', () => {
     beforeAll(async () => {
@@ -33,6 +35,7 @@ describe('test bruteforce guard', () => {
                     attemptMinutesByIp: 30,
                     attemptCountByLogin: 5,
                     attemptCountByIp: 10,
+                    loginField: 'login',
                 }),
             ],
             controllers: [SecurityController],
@@ -44,6 +47,7 @@ describe('test bruteforce guard', () => {
         await app.init();
 
         loginHelper = new LoginRequestHelper(app);
+        bruteforceGuardService = app.get(BruteforceGuardService);
     });
 
     afterAll(async () => {
@@ -55,20 +59,7 @@ describe('test bruteforce guard', () => {
         await connection.dropDatabase();
     });
 
-    it('should show forbidden exception without callback', async () => {
-        const payload = {
-            email: 'admin@example.com',
-            pwd: 'admon',
-        };
-        expect(await loginHelper.tryLogin(5, payload, '/custom-login')).to.be.true;
-
-        const response = await loginHelper.login(payload, '/custom-login');
-
-        expect(response.status).to.be.equal(403);
-        expect(response.body.message).to.be.equal('Forbidden resource');
-    });
-
-    it('should use callback when ip attempt greater then expected', async () => {
+    it('should deny login when ip attempt greater then expected', async () => {
         const payload = {
             login: 'some-login',
             password: 'admon',
@@ -78,10 +69,30 @@ describe('test bruteforce guard', () => {
         const response = await loginHelper.login(payload, '/login');
 
         expect(response.status).to.be.equal(403);
-        expect(response.body.message).to.be.equal('Too many login attempts');
+        expect(response.body.message).to.be.equal('Bruteforce detection');
+
+        const loginFailureCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: false,
+            badPassword: false,
+            attemptBlocked: false,
+        });
+
+        const loginFailureAttempts = await loginFailureCursor.toArray();
+        expect(loginFailureAttempts.length).to.equal(10);
+
+        const attemptBlockedCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: false,
+            badPassword: false,
+            attemptBlocked: true,
+        });
+
+        const blockedAttempts = await attemptBlockedCursor.toArray();
+        expect(blockedAttempts.length).to.equal(1);
     });
 
-    it('should return forbidden response with callback', async () => {
+    it('should deny login when login with bad password attempt greater then expected', async () => {
         const payload = {
             login: 'admin',
             password: 'bad password',
@@ -91,42 +102,79 @@ describe('test bruteforce guard', () => {
         const response = await loginHelper.login(payload, '/login');
 
         expect(response.status).to.be.equal(403);
-        expect(response.body.message).to.be.equal('Too many login attempts');
+        expect(response.body.message).to.be.equal('Bruteforce detection');
+
+        const badPasswordCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: false,
+            badPassword: true,
+            attemptBlocked: false,
+        });
+
+        const badPasswordAttempts = await badPasswordCursor.toArray();
+        expect(badPasswordAttempts.length).to.equal(5);
+
+        const attemptBlockedCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: false,
+            badPassword: false,
+            attemptBlocked: true,
+        });
+
+        const blockedAttempts = await attemptBlockedCursor.toArray();
+        expect(blockedAttempts.length).to.equal(1);
     });
 
-    it('should clear attempts after success login by username', async () => {
-        expect(await loginHelper.tryLogin(4, {
-            login: 'admin',
-            password: 'admon',
-        })).to.be.true;
+    it('should deny login when login attempt greater then expected', async () => {
+        const payload = {
+            login: 'disabled',
+            password: 'bad password',
+        };
+        expect(await loginHelper.tryLogin(5, payload)).to.be.true;
 
-        const response = await loginHelper.login({
-            login: 'admin',
-            password: 'admin',
+        const response = await loginHelper.login(payload, '/login');
+
+        expect(response.status).to.be.equal(403);
+        expect(response.body.message).to.be.equal('Bruteforce detection');
+
+        const userDisabledCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: true,
+            badPassword: false,
+            attemptBlocked: false,
         });
+
+        const userDisabledAttempts = await userDisabledCursor.toArray();
+        expect(userDisabledAttempts.length).to.equal(5);
+
+        const attemptBlockedCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: true,
+            userDisabled: false,
+            badPassword: false,
+            attemptBlocked: true,
+        });
+
+        const blockedAttempts = await attemptBlockedCursor.toArray();
+        expect(blockedAttempts.length).to.equal(1);
+    });
+
+    it('should save success attempt', async () => {
+         const response = await loginHelper.login({
+             login: 'admin',
+             password: 'admin',
+         });
 
         expect(response.status).to.be.equal(200);
-        expect(response.body.username).to.be.equal('admin');
 
-        expect(await loginHelper.tryLogin(4, {
-            login: 'admin',
-            password: 'admon',
-        })).to.be.true;
-    });
-
-    it('should clear attempts after success login by ip', async () => {
-        expect(await loginHelper.tryLoginWithRandomUsername(9, {
-            password: 'admon',
-        })).to.be.true;
-
-        await loginHelper.tryLogin(1, {
-            login: 'admin',
-            password: 'admin',
+        const successLoginCursor = await bruteforceGuardService.findByFilter({
+            loginFailure: false,
+            userDisabled: false,
+            badPassword: false,
+            attemptBlocked: false,
         });
 
-        expect(await loginHelper.tryLoginWithRandomUsername(9, {
-            password: 'admon',
-        })).to.be.true;
+        const successAttempts = await successLoginCursor.toArray();
+        expect(successAttempts.length).to.equal(1);
     });
 });
 
