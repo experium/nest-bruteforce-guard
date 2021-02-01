@@ -15,7 +15,7 @@ export class LoginAttempt {
   ip: string;
 
   @Column()
-  @Index({ expireAfterSeconds: 31536000 }) //1 year
+  @Index({ expireAfterSeconds: 31536000 }) // 1 year
   date: Date;
 
   @Column()
