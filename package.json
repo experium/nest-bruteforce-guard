@@ -34,9 +34,9 @@
     "typeorm": "^0.2.22"
   },
   "bugs": {
-    "url": "https://git@github.com/derzkiy/bruteforce-guard/issues"
+    "url": "https://git@github.com/experium/nest-bruteforce-guard/issues"
   },
-  "homepage": "https://git@github.com/derzkiy/bruteforce-guard#readme",
+  "homepage": "https://git@github.com/experium/nest-bruteforce-guard#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
     "@nestjs/platform-express": "^7.6.5",
