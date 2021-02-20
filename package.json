@@ -24,8 +24,6 @@
     "@nestjs/common": "^7.6.7",
     "@nestjs/config": "^0.6.1",
     "@nestjs/core": "^6.7.0",
-    "@nestjs/event-emitter": "^0.0.2",
-    "@nestjs/passport": "^6.2.0",
     "@nestjs/typeorm": "^6.2.0",
     "date-fns": "^2.16.1",
     "escape-string-regexp": "^4.0.0",
