@@ -16,36 +16,36 @@ import { ExceptionCatcherRegistry } from './catcher/exception-catcher.registry';
 
 @Global()
 @Module({
-    imports: [TypeOrmModule.forFeature([LoginAttempt])],
+  imports: [TypeOrmModule.forFeature([LoginAttempt])],
 })
 export class BruteforceGuardModule {
-    static setUp(config: BruteforceGuardConfiguration): DynamicModule {
-        return {
-            module: BruteforceGuardModule,
-            providers: [
-                {
-                    provide: BRUTEFORCE_GUARD_OPTIONS_PROVIDER,
-                    useValue: config,
-                },
-                BruteforceGuardService,
-                BruteforceGuardInterceptor,
-                BadPasswordException,
-                UserDisabledException,
-                UserNotFoundException,
-                BruteforceDetectionException,
-                BadPasswordExceptionCatcher,
-                UserNotFoundExceptionCatcher,
-                UserDisabledExceptionCatcher,
-                ExceptionCatcherRegistry,
-            ],
-            exports: [
-                BruteforceGuardService,
-                BruteforceGuardInterceptor,
-                BadPasswordException,
-                UserDisabledException,
-                UserNotFoundException,
-                BruteforceDetectionException
-            ],
-        };
-    }
+  static setUp(config: BruteforceGuardConfiguration): DynamicModule {
+    return {
+      module: BruteforceGuardModule,
+      providers: [
+        {
+          provide: BRUTEFORCE_GUARD_OPTIONS_PROVIDER,
+          useValue: config,
+        },
+        BruteforceGuardService,
+        BruteforceGuardInterceptor,
+        BadPasswordException,
+        UserDisabledException,
+        UserNotFoundException,
+        BruteforceDetectionException,
+        BadPasswordExceptionCatcher,
+        UserNotFoundExceptionCatcher,
+        UserDisabledExceptionCatcher,
+        ExceptionCatcherRegistry,
+      ],
+      exports: [
+        BruteforceGuardService,
+        BruteforceGuardInterceptor,
+        BadPasswordException,
+        UserDisabledException,
+        UserNotFoundException,
+        BruteforceDetectionException,
+      ],
+    };
+  }
 }

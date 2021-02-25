@@ -8,22 +8,21 @@ import { BruteforceGuardConfiguration } from '../config/bruteforce-quard.configu
 
 @Injectable()
 export class UserNotFoundExceptionCatcher extends AbstractExceptionCatcher {
+  constructor(
+    registry: ExceptionCatcherRegistry,
+    @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
+    readonly config: BruteforceGuardConfiguration,
+  ) {
+    super(registry, config);
+  }
 
-    constructor(
-        registry: ExceptionCatcherRegistry,
-        @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
-        readonly config: BruteforceGuardConfiguration,
-    ) {
-        super(registry, config);
-    }
+  supports(exception: any): boolean {
+    return exception instanceof UserNotFoundException;
+  }
 
-    supports(exception: any): boolean {
-        return exception instanceof UserNotFoundException;
-    }
+  catch(exception: UserNotFoundException, context: ExecutionContext): LoginAttempt {
+    const { login, ip } = this.getPayloadByContext(context);
 
-    catch(exception: UserNotFoundException, context: ExecutionContext): LoginAttempt {
-        const { login, ip } = this.getPayloadByContext(context);
-
-        return new LoginAttempt(login, ip, true);
-    }
+    return new LoginAttempt(login, ip, true);
+  }
 }

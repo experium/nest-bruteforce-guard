@@ -5,19 +5,18 @@ import { BruteforceGuardService } from './bruteforce-guard.service';
 
 @Injectable()
 export class BruteforceGuardInterceptor implements NestInterceptor {
+  constructor(private readonly bruteforceGuardService: BruteforceGuardService) {}
 
-    constructor(private readonly bruteforceGuardService: BruteforceGuardService) {}
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    await this.bruteforceGuardService.canLogin(context);
 
-    async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-        await this.bruteforceGuardService.canLogin(context);
+    return next.handle().pipe(
+      catchError(async (err) => {
+        await this.bruteforceGuardService.saveErrorAttempt(context, err);
 
-        return next.handle().pipe(
-            catchError(async (err) => {
-                await this.bruteforceGuardService.saveErrorAttempt(context, err);
-
-                throw err;
-            }),
-            tap(async () => await this.bruteforceGuardService.saveSuccessAttempt(context)),
-        );
-    }
+        throw err;
+      }),
+      tap(async () => await this.bruteforceGuardService.saveSuccessAttempt(context)),
+    );
+  }
 }

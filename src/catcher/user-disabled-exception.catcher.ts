@@ -8,22 +8,21 @@ import { UserDisabledException } from '../exception/user-disabled.exception';
 
 @Injectable()
 export class UserDisabledExceptionCatcher extends AbstractExceptionCatcher {
+  constructor(
+    registry: ExceptionCatcherRegistry,
+    @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
+    readonly config: BruteforceGuardConfiguration,
+  ) {
+    super(registry, config);
+  }
 
-    constructor(
-        registry: ExceptionCatcherRegistry,
-        @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
-        readonly config: BruteforceGuardConfiguration,
-    ) {
-        super(registry, config);
-    }
+  supports(exception: any): boolean {
+    return exception instanceof UserDisabledException;
+  }
 
-    supports(exception: any): boolean {
-        return exception instanceof UserDisabledException;
-    }
+  catch(exception: UserDisabledException, context: ExecutionContext): LoginAttempt {
+    const { login, ip } = this.getPayloadByContext(context);
 
-    catch(exception: UserDisabledException, context: ExecutionContext): LoginAttempt {
-        const { login, ip } = this.getPayloadByContext(context);
-
-        return new LoginAttempt(login, ip, true, false, true);
-    }
+    return new LoginAttempt(login, ip, true, false, true);
+  }
 }

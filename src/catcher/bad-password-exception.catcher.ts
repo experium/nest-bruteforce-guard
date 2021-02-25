@@ -8,22 +8,21 @@ import { BadPasswordException } from '../exception/bad-password.exception';
 
 @Injectable()
 export class BadPasswordExceptionCatcher extends AbstractExceptionCatcher {
+  constructor(
+    registry: ExceptionCatcherRegistry,
+    @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
+    readonly config: BruteforceGuardConfiguration,
+  ) {
+    super(registry, config);
+  }
 
-    constructor(
-        registry: ExceptionCatcherRegistry,
-        @Inject(BRUTEFORCE_GUARD_OPTIONS_PROVIDER)
-        readonly config: BruteforceGuardConfiguration,
-    ) {
-        super(registry, config);
-    }
+  supports(exception: any): boolean {
+    return exception instanceof BadPasswordException;
+  }
 
-    supports(exception: any): boolean {
-        return exception instanceof BadPasswordException;
-    }
+  catch(exception: BadPasswordException, context: ExecutionContext): LoginAttempt {
+    const { login, ip } = this.getPayloadByContext(context);
 
-    catch(exception: BadPasswordException, context: ExecutionContext): LoginAttempt {
-        const { login, ip } = this.getPayloadByContext(context);
-
-        return new LoginAttempt(login, ip, true, false, false, true);
-    }
+    return new LoginAttempt(login, ip, true, false, false, true);
+  }
 }

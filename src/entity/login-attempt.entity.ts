@@ -31,12 +31,12 @@ export class LoginAttempt {
   badPassword: boolean;
 
   constructor(
-      login: string,
-      ip: string,
-      loginFailure: boolean = false,
-      attemptBlocked: boolean = false,
-      userDisabled: boolean = false,
-      badPassword: boolean = false,
+    login: string,
+    ip: string,
+    loginFailure: boolean = false,
+    attemptBlocked: boolean = false,
+    userDisabled: boolean = false,
+    badPassword: boolean = false,
   ) {
     this.login = login;
     this.ip = ip;

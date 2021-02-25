@@ -1,5 +1,3 @@
 import { UnauthorizedException } from '@nestjs/common';
 
-export class BadPasswordException extends UnauthorizedException {
-
-}
+export class BadPasswordException extends UnauthorizedException {}
