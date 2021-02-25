@@ -53,7 +53,7 @@
   },
   "scripts": {
     "test": "jest --config ./tests/jest-e2e.json --runInBand",
-    "build": "rm -rf dist && ./node_modules/typescript/bin/tsc",
+    "build": "rm -rf dist && ./node_modules/typescript/bin/tsc --declaration",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "./node_modules/tslint/bin/tslint -p tsconfig.json"
   }
