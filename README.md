@@ -29,21 +29,6 @@ export class ApplicationModule {
 
 ```
 
-### Decorator on controller login action
-import { ExecutionContext } from '@nestjs/common';
-
-@UseGuards(BruteforceGuard)
-@LoginEntityOptions({
-    loginFieldName: 'username',
-    passwordFieldName: 'password',
-    callback: (context: ExecutionContext) => {
-        throw new ForbiddenException('Too many login attempts');
-    },
-})
-@Post('login')
-async login(@Body() body: any, @Req() request: Request): Promise<boolean> {
-}
-
 ### Save attempt when login failed by password
 await this.bruteforceGuard.saveLoginAttempt(user.username, request.ip);
 
