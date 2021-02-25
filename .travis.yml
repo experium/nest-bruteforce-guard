@@ -15,7 +15,6 @@ jobs:
       - npm run build
       - git diff
       - npm version 1.0.$TRAVIS_BUILD_NUMBER
-      - ls -lah
       deploy:
         cleanup: false
         provider: npm
