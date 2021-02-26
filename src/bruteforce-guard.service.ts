@@ -105,7 +105,7 @@ export class BruteforceGuardService {
       ];
     }
 
-    if ('dateTo' in filter &&filter.dateTo) {
+    if ('dateTo' in filter && filter.dateTo) {
       query.$and = query.$and || [];
       query.$and = [
         ...query.$and,
