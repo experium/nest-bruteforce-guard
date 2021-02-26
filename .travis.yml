@@ -16,6 +16,7 @@ jobs:
       - git diff
       - npm version 1.0.$TRAVIS_BUILD_NUMBER
       deploy:
+        skip_cleanup: true
         cleanup: false
         provider: npm
         email: "webdev@experium.ru"
