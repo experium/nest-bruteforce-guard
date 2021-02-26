@@ -4,10 +4,6 @@
   "description": "Authorization protection from bruteforce",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
   "publishConfig": {
     "access": "public"
   },
