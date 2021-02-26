@@ -93,6 +93,30 @@ export class BruteforceGuardService {
       query.badPassword = filter.badPassword;
     }
 
+    if ('dateFrom' in filter && filter.dateFrom) {
+      query.$and = query.$and || [];
+      query.$and = [
+        ...query.$and,
+        {
+          date: {
+            $gte: new Date(filter.dateFrom),
+          },
+        },
+      ];
+    }
+
+    if ('dateTo' in filter &&filter.dateTo) {
+      query.$and = query.$and || [];
+      query.$and = [
+        ...query.$and,
+        {
+          date: {
+            $lte: new Date(filter.dateTo),
+          },
+        },
+      ];
+    }
+
     return query;
   }
 
