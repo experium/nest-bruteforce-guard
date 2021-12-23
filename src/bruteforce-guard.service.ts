@@ -1,6 +1,7 @@
 import { addMinutes } from 'date-fns';
 import { Cursor, MongoRepository, ObjectLiteral } from 'typeorm';
 import * as escapeStringRegexp from 'escape-string-regexp';
+import * as requestIp from 'request-ip';
 import { ExecutionContext, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginAttempt } from './entity/login-attempt.entity';
@@ -20,7 +21,7 @@ export class BruteforceGuardService {
 
   async canLogin(context: ExecutionContext): Promise<boolean> {
     const login = this.getLoginByContext(context);
-    const ip = context.switchToHttp().getRequest().ip;
+    const ip = this.getRealIp(context.switchToHttp().getRequest());
     const loginAttemptsCount = await this.getAttemptsCountByLogin(login);
     const ipAttemptsCount = await this.getAttemptsCountByIP(ip);
 
@@ -39,7 +40,7 @@ export class BruteforceGuardService {
 
   async saveErrorAttempt(context: ExecutionContext, exception: any): Promise<void> {
     const login = this.getLoginByContext(context);
-    const ip = context.switchToHttp().getRequest().ip;
+    const ip = this.getRealIp(context.switchToHttp().getRequest());
 
     let loginAttempt = null;
     for (const catcher of this.registry.getAll()) {
@@ -122,7 +123,7 @@ export class BruteforceGuardService {
 
   async saveSuccessAttempt(context: ExecutionContext): Promise<void> {
     const login = this.getLoginByContext(context);
-    const ip = context.switchToHttp().getRequest().ip;
+    const ip = this.getRealIp(context.switchToHttp().getRequest());
 
     await this.repository.save(new LoginAttempt(login, ip));
   }
@@ -155,5 +156,9 @@ export class BruteforceGuardService {
     const loginField = this.config.loginField;
 
     return context.switchToHttp().getRequest().body[loginField];
+  }
+
+  private getRealIp(request): string {
+    return requestIp.getClientIp(request);
   }
 }
