@@ -1,6 +1,6 @@
 {
   "name": "@experium/nest-bruteforce-guard",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Authorization protection from bruteforce",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,16 +21,16 @@
     "password"
   ],
   "dependencies": {
-    "@nestjs/common": "^7.6.7",
-    "@nestjs/config": "^0.6.1",
-    "@nestjs/core": "^6.7.0",
-    "@nestjs/typeorm": "^6.2.0",
+    "@nestjs/common": "^8.0.0",
+    "@nestjs/config": "^2.1.0",
+    "@nestjs/core": "^8.0.0",
+    "@nestjs/typeorm": "^8.0.0",
     "date-fns": "^2.16.1",
     "escape-string-regexp": "^4.0.0",
     "mongodb": "^3.6.3",
     "request-ip": "^2.1.3",
-    "rxjs": "^6.6.3",
-    "typeorm": "^0.2.22"
+    "rxjs": "^7.5.0",
+    "typeorm": "^0.3.6"
   },
   "bugs": {
     "url": "https://git@github.com/experium/nest-bruteforce-guard/issues"
@@ -38,8 +38,8 @@
   "homepage": "https://git@github.com/experium/nest-bruteforce-guard#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
-    "@nestjs/platform-express": "^7.6.5",
-    "@nestjs/testing": "^6.2.0",
+    "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/testing": "^8.0.0",
     "@types/jest": "^26.0.20",
     "@types/request-ip": "^0.0.37",
     "chai": "^4.2.0",

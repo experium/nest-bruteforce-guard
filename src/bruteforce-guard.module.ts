@@ -15,13 +15,12 @@ import { UserDisabledExceptionCatcher } from './catcher/user-disabled-exception.
 import { ExceptionCatcherRegistry } from './catcher/exception-catcher.registry';
 
 @Global()
-@Module({
-  imports: [TypeOrmModule.forFeature([LoginAttempt])],
-})
+@Module({})
 export class BruteforceGuardModule {
-  static setUp(config: BruteforceGuardConfiguration): DynamicModule {
+  static async forRootAsync(config: BruteforceGuardConfiguration, typeOrmModule): Promise<DynamicModule> {
     return {
       module: BruteforceGuardModule,
+      imports: [typeOrmModule.forFeature([LoginAttempt])],
       providers: [
         {
           provide: BRUTEFORCE_GUARD_OPTIONS_PROVIDER,
